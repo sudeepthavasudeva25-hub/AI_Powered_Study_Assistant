@@ -4,7 +4,19 @@ from dotenv import load_dotenv
 import os
 import time
 
-# Load environment variables
+
+# --------------------------------------------------
+# STUDY HISTORY
+# --------------------------------------------------
+
+if "history" not in st.session_state:
+    st.session_state.history = []
+
+
+# --------------------------------------------------
+# LOAD ENVIRONMENT VARIABLES
+# --------------------------------------------------
+
 load_dotenv()
 
 # Get Gemini API key
@@ -14,7 +26,11 @@ if not api_key:
     st.error("Gemini API key not found. Please check your .env file.")
     st.stop()
 
-# Create Gemini client
+
+# --------------------------------------------------
+# CREATE GEMINI CLIENT
+# --------------------------------------------------
+
 client = genai.Client(api_key=api_key)
 
 
@@ -23,16 +39,21 @@ client = genai.Client(api_key=api_key)
 # --------------------------------------------------
 
 def generate_response(prompt):
+
     for attempt in range(3):
+
         try:
+
             return client.models.generate_content(
                 model="gemini-3.8-flash",
                 contents=prompt
             )
 
         except Exception:
+
             if attempt < 2:
                 time.sleep(3)
+
             else:
                 raise
 
@@ -91,18 +112,28 @@ if mode == "💬 Ask a Question":
             with st.spinner("Thinking..."):
 
                 try:
+
                     response = generate_response(question)
 
                     st.subheader("💡 Answer")
                     st.write(response.text)
 
+                    # Save to history
+                    st.session_state.history.append({
+                        "mode": "Ask a Question",
+                        "question": question,
+                        "answer": response.text
+                    })
+
                 except Exception:
+
                     st.error(
                         "⚠️ Gemini is temporarily busy. "
                         "Please try again after a few seconds."
                     )
 
         else:
+
             st.warning("Please enter a question first.")
 
 
@@ -141,18 +172,28 @@ Notes:
 """
 
                 try:
+
                     response = generate_response(prompt)
 
                     st.subheader("📌 Summary")
                     st.write(response.text)
 
+                    # Save to history
+                    st.session_state.history.append({
+                        "mode": "Summarize Notes",
+                        "question": "Notes Summary",
+                        "answer": response.text
+                    })
+
                 except Exception:
+
                     st.error(
                         "⚠️ Gemini is temporarily busy. "
                         "Please try again after a few seconds."
                     )
 
         else:
+
             st.warning("Please enter some notes first.")
 
 
@@ -186,18 +227,28 @@ For each question:
 """
 
                 try:
+
                     response = generate_response(prompt)
 
                     st.subheader("📝 Quiz")
                     st.write(response.text)
 
+                    # Save to history
+                    st.session_state.history.append({
+                        "mode": "Generate Quiz",
+                        "question": topic,
+                        "answer": response.text
+                    })
+
                 except Exception:
+
                     st.error(
                         "⚠️ Gemini is temporarily busy. "
                         "Please try again after a few seconds."
                     )
 
         else:
+
             st.warning("Please enter a topic first.")
 
 
@@ -237,16 +288,52 @@ Include:
 """
 
                 try:
+
                     response = generate_response(prompt)
 
                     st.subheader("📚 Explanation")
                     st.write(response.text)
 
+                    # Save to history
+                    st.session_state.history.append({
+                        "mode": "Explain a Topic",
+                        "question": topic,
+                        "answer": response.text
+                    })
+
                 except Exception:
+
                     st.error(
                         "⚠️ Gemini is temporarily busy. "
                         "Please try again after a few seconds."
                     )
 
         else:
+
             st.warning("Please enter a topic first.")
+
+
+# --------------------------------------------------
+# STUDY HISTORY
+# --------------------------------------------------
+
+st.sidebar.divider()
+
+st.sidebar.subheader("📚 Study History")
+
+if st.session_state.history:
+
+    st.sidebar.write(
+        f"You have {len(st.session_state.history)} "
+        "study activities in this session."
+    )
+
+    if st.sidebar.button("🗑️ Clear History"):
+
+        st.session_state.history = []
+
+        st.rerun()
+
+else:
+
+    st.sidebar.info("No study history yet.")
