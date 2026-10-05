@@ -6,3 +6,4 @@ sentence-transformers==6.1.0
 chromadb==1.5.9
 ollama==0.6.3
 pillow==12.3.0
+torchvision==0.29.1
